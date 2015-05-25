@@ -1,0 +1,45 @@
+{
+  "CPI": {
+    "food & beverages": {
+      "food": {
+        "food at home": 8.404,
+        "food away from home": 6.099
+      },
+      "alcoholic beverages": 0.922
+    },
+    "housing": {
+      "household furnishings": 4.377,
+      "shelter": {
+        "rent of 1st residence": 7.526,
+        "owners equiv. rent": {
+          "owners equiv. rent of 1st residence": 20.035,
+          "other": 0.646
+        },
+        "other": 1.066
+      },
+      "fuels & utilities": {
+        "energy" : {
+          "electricity" : 3.674,
+          "gas" : 0.674
+        },
+        "other" : 0.065
+      }
+    },
+    "apparel" : 3.254
+    ,
+    "transportation": {
+      "private transportation": {
+        "motor fuel": 4.580,
+        "other": 12.477
+      },
+      "other": 0.75
+    },
+    "medical care": 7.543
+    ,
+    "recreation": 6.102
+    ,
+    "education": 6.161
+    ,
+    "Other": 3.537
+  }  
+}

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style>
+ #legend_text {
+ 	font-size: 12px;
+ 	font-weight: bold;
+ }
+ #title_text {
+ 	font-size: 20px;
+  text-decoration: underline;
+ }
+
+</style>
+<body> 	
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.1.2.min.js"></script>
+  <script> 
+
+var width = 960
+var height = 800
+
+var svg = d3.select("body")
+			.append("svg")
+			.attr("width", width)
+			.attr("height", height);
+
+d3.csv("bls_cpi_final.csv", function(data) {
+
+	var myChart = new dimple.chart(svg, data);
+  //dimple.chart.setBounds(x, y, width, height)
+	myChart.setBounds("3%","5%","59%","87%");
+	var xAxis = myChart.addTimeAxis("x", "date", "%B-%Y", "%b %y");
+	xAxis.title = "Date";
+ 	var yAxis = myChart.addMeasureAxis("y", "cpi-value");
+ 	yAxis.overrideMin = 100
+ 	yAxis.title = "Index Value"
+  	myChart.addSeries("descrip", dimple.plot.line).addEventHandler("click", 
+        function (b) {
+  		    alert(" " + b.xValue + "\n " + "CPI Value: " + b.yValue + 
+                "\n Use legend to toggle series on or off")
+  	});
+    //dimple.chart.addLegend(x, y, width, height, horizontalAlign, series)
+  	var myLegend = myChart.addLegend(60, 10, 700, 20, "left");
+  	myChart.draw();
+
+  	myChart.legends = [];
+
+  	svg.selectAll("title_text")
+  		.data(["Click legend to show/hide a line"])
+  		.enter()
+  		.append("text")
+  		  .attr("id", "legend_text")
+  		  .attr("text-anchor", "start")
+  			.attr("x", "450")
+  			.attr("y", "35")
+  			.text(function (d) {return d; });
+
+        //Interactive legend modified from
+        // example here http://dimplejs.org/advanced_examples_viewer.html?id=advanced_interactive_legends
+
+        //Get a list of the unique values for descriptive names of Major Item Groups
+        var filterValues = dimple.getUniqueValues(data, "descrip");
+        // Get all the rectangles from our now orphaned legend
+        myLegend.shapes.selectAll("rect")
+          // Add a click event to each rectangle
+          .on("click", function (e) {
+            // This indicates whether the item is already visible or not
+            var hide = false;
+            var newFilters = [];
+            // If the filters contain the clicked shape hide it
+            filterValues.forEach(function (f) {
+              if (f === e.aggField.slice(-1)[0]) {
+                hide = true;
+              } else {
+                newFilters.push(f);
+              }
+            });
+            // Hide the shape or show it
+            if (hide) {
+              d3.select(this).style("opacity", 0.2);
+            } else {
+              newFilters.push(e.aggField.slice(-1)[0]);
+              d3.select(this).style("opacity", 0.8);
+            }
+            // Update the filters
+            filterValues = newFilters;
+            // Filter the data
+            myChart.data = dimple.filterData(data, "descrip", filterValues);
+            // Passing a duration parameter makes the chart animate. Without
+            // it there is no transition
+            myChart.draw(800);
+          });
+
+  // Add Title
+  svg.append("text")
+  	.attr("id", "title_text")
+  	.attr("x", width / 3.5)
+  	.attr("y", height / 10)
+  	.text("DFW Metropolitan CPI Values by Item Group")
+       
+  // Add Notes
+  svg.selectAll("note_text")
+    .data(["Individual data lines may be toggled on or off by clicking legend.", "", '"Other Goods and Services" is a category used to house all products', 
+      "& services that do not naturally fall into one of the other categories."])
+    .enter()
+    .append("text")
+      .attr("class", "note_text")
+      .attr("text-anchor", "start")
+      .attr("x", width / 3.9)
+      .attr("y", function (d, i) { return 130 + i * 16; })
+      .text(function (d) {return d; });
+
+  svg.append("text")
+      .attr("class", "note_text")
+      .attr("x", width / 4.8)
+      .attr("y", 130)
+      .text("Notes:")     
+  });	
+  </script>
+
+</body>
+</html>

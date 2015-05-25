@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+	font: 10px, sans-serif;
+}
+
+.axis path,
+.axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+.x.axis path {
+	display:none;
+}
+
+.line {
+	fill:none;
+	stroke: steelblue;
+	stroke-width: 1.5px;
+}
+.dataLabel {
+	display:inline;
+}
+
+body .labelText {
+	font-size:10px;
+}
+
+#line0 {
+	stroke:red;
+}
+
+#label0, #legend0 {
+	fill:red;
+}
+
+#line1 {
+	stroke:purple;
+}
+
+#label1, #legend1 {
+	fill: purple;
+}
+
+#line2 {
+	stroke:steelblue;
+}
+
+#label2, #legend2 {
+	fill: steelblue;
+}
+
+#line3 {
+	stroke:gray;
+}
+
+#label3, #legend3 {
+	fill: gray;
+}
+
+#line4 {
+	stroke:green;
+}
+
+#label4, #legend4 {
+	fill: green;
+}
+
+#line5 {
+	stroke:blue;
+}
+
+#label5, #legend5 {
+	fill: blue;
+}
+
+#line6 {
+	stroke:black;
+}
+
+#label6, #legend6 {
+	fill: black;
+}
+
+
+</style>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<body>
+<script>
+
+var margin = {top: 50, right: 80, bottom: 100, left: 50},
+	width = 960 - margin.right - margin.left,
+	height = 500 - margin.top - margin.bottom;
+
+var parseDate = d3.time.format("%B-%Y").parse;
+
+var x = d3.time.scale()
+						.range([0, width]);
+
+var y = d3.scale.linear()
+						.range([height, 0]);
+
+var xAxis = d3.svg.axis()
+							.scale(x)
+							.orient("bottom");
+
+var yAxis = d3.svg.axis()
+							.scale(y)
+							.orient("left");
+
+var priceline = d3.svg.line()
+									.x(function(d) { return x(d.date) ; })
+									.y(function(d) { return y(d.value) ; });
+
+var svg = d3.select("body")
+						.append("svg")
+						.attr("width", width + margin.left + margin.right)
+						.attr("height", height + margin.top + margin.bottom)
+						.append("g")
+						.attr("transform", "translate(" + margin.left  + "," + margin.top + ")" ) ;
+
+d3.csv("bls_tidy_multiseries_d3.csv", function(error, data) { data.forEach(function(d) { d.date = parseDate(d.date); d.value = +d.value; } ); 
+
+																								x.domain(d3.extent(data, function(d) { return d.date; }));
+																								y.domain(d3.extent(data, function(d) { return d.value; }));
+
+																								//Nest entries by seriesID
+																								var dataNest = d3.nest()
+																																	.key(function(d) {return d.seriesID; })
+																																	.entries(data);									
+
+																								//loop through each seriesID 
+																								dataNest.forEach(function(d,i) {
+
+																											svg.append("path")
+																											.attr("class", "line")
+																											.attr("id", ("line" + String(i)))
+																											.attr("d", priceline(d.values)); 
+
+																											//create labels
+																											svg.append("text")
+																												.attr("class", "labelText")
+																												.attr("id", ("label" + String(i)))
+																												.attr("transform", "translate(" + (width+3) + "," 
+																													+ (y(dataNest[i]["values"][(dataNest[i]["values"].length - 1)]["value"])) + ")")
+																												.attr("dy", ".35em")
+																												.attr("text-anchor", "start")
+																												.text(String(dataNest[i]["values"][0]["seriesID"]))	;
+
+																										});
+
+																								svg.append("g")
+																										.attr("class", "x axis")
+																										.attr("transform", "translate(0," + height + ")" )
+																										.call(xAxis);
+
+																								svg.append("g")
+																										.attr("class", "y axis")
+																										.call(yAxis)
+																										.append("text")
+																										.attr("transform", "rotate(270)")
+																										.attr("y", 6)
+																										.attr("dy", ".71em")
+																										.style("text-anchor", "end")	
+																										.text("Price ($)");
+
+																								//Hardcoded Legend
+																								svg.append('g')
+																								    .append("text")
+																										.attr("x", 0)
+																										.attr("y", height + 40)
+																										.attr("id", "legend0")
+																										.on("click", function() {
+																											//Determine if current line is visible
+																											var active = line0.active ? false : true,
+																												newOpacity = active ? 0 : 1;
+																											//Hide or show the elements
+																											d3.select("#line0").style("opacity", newOpacity);
+																											d3.select("#label0").style("opacity", newOpacity);
+																											//update whether or not the the elements are active
+																											line0.active = active;
+																											label0.active = active;
+																										} )
+																										.text("Line0");	
+
+																								 svg.append('g')
+																								    .append("text")
+																										.attr("x", 0)
+																										.attr("y", height + 40 + 20 * 1)
+																										.attr("id", "legend1")
+																										.on("click", function() {
+																											//Determin if current line is visible
+																											var active = line1.active ? false : true,
+																												newOpacity = active ? 0 : 1;
+																											//Hide or show the elements
+																											d3.select("#line1").style("opacity", newOpacity);
+																											d3.select("#label1").style("opacity", newOpacity);
+																											//update whether or not the the elements are active
+																											line1.active = active;
+																											label1.active = active;
+																										} )
+																										.text("Line1");
+
+																								 svg.append('g')
+																								    .append("text")
+																										.attr("x", 0)
+																										.attr("y", height + 40 + 20 * 2)
+																										.attr("id", "legend2")
+																										.on("click", function() {
+																											//Determin if current line is visible
+																											var active = line2.active ? false : true,
+																												newOpacity = active ? 0 : 1;
+																											//Hide or show the elements
+																											d3.select("#line2").style("opacity", newOpacity);
+																											d3.select("#label2").style("opacity", newOpacity);
+																											//update whether or not the the elements are active
+																											line2.active = active;
+																											label2.active = active;
+																										} )
+																										.text("Line2");
+
+																									svg.append('g')
+																								    .append("text")
+																										.attr("x", 0)
+																										.attr("y", height + 40 + 20 * 3)
+																										.attr("id", "legend3")
+																										.on("click", function() {
+																											//Determin if current line is visible
+																											var active = line2.active ? false : true,
+																												newOpacity = active ? 0 : 1;
+																											//Hide or show the elements
+																											d3.select("#line3").style("opacity", newOpacity);
+																											d3.select("#label3").style("opacity", newOpacity);
+																											//update whether or not the the elements are active
+																											line2.active = active;
+																											label2.active = active;
+																										} )
+																										.text("Line3");
+
+																									svg.append('g')
+																								    .append("text")
+																										.attr("x", 60)
+																										.attr("y", height + 40 + 20 * 0)
+																										.attr("id", "legend4")
+																										.on("click", function() {
+																											//Determin if current line is visible
+																											var active = line2.active ? false : true,
+																												newOpacity = active ? 0 : 1;
+																											//Hide or show the elements
+																											d3.select("#line4").style("opacity", newOpacity);
+																											d3.select("#label4").style("opacity", newOpacity);
+																											//update whether or not the the elements are active
+																											line2.active = active;
+																											label2.active = active;
+																										} )
+																										.text("Line4");
+
+																									svg.append('g')
+																								    .append("text")
+																										.attr("x", 60)
+																										.attr("y", height + 40 + 20 * 1)
+																										.attr("id", "legend5")
+																										.on("click", function() {
+																											//Determin if current line is visible
+																											var active = line2.active ? false : true,
+																												newOpacity = active ? 0 : 1;
+																											//Hide or show the elements
+																											d3.select("#line5").style("opacity", newOpacity);
+																											d3.select("#label5").style("opacity", newOpacity);
+																											//update whether or not the the elements are active
+																											line2.active = active;
+																											label2.active = active;
+																										} )
+																										.text("Line5");
+
+																									svg.append('g')
+																								    .append("text")
+																										.attr("x", 60)
+																										.attr("y", height + 40 + 20 * 2)
+																										.attr("id", "legend6")
+																										.on("click", function() {
+																											//Determin if current line is visible
+																											var active = line2.active ? false : true,
+																												newOpacity = active ? 0 : 1;
+																											//Hide or show the elements
+																											d3.select("#line6").style("opacity", newOpacity);
+																											d3.select("#label6").style("opacity", newOpacity);
+																											//update whether or not the the elements are active
+																											line2.active = active;
+																											label2.active = active;
+																										} )
+																										.text("Line6");																							
+
+																								});		
+
+</script>
+</body>
