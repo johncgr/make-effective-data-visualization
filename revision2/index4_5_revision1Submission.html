@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font-family:Arial;
+  font-size:12px;
+}
+
+div.textBox {
+  max-width: 920px;
+}
+
+ #legend_text {
+ 	font-size: 12px;
+ 	font-weight: bold;
+ }
+
+ #title_text {
+ 	font-size: 20px;
+  text-decoration: underline;
+ }
+
+ ul {
+  list-style-type: square;
+ }
+
+  .node circle {
+    fill: #fff;
+    stroke: #252525;
+    stroke-width: 1.5px;
+  }
+
+  .node text { 
+    font: 12px sans-serif; 
+  }
+
+  .link {
+    fill: none;
+    stroke: #ccc;
+    stroke-width: 1.5px;
+  }
+
+</style>
+<body> 	
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://dimplejs.org/dist/dimple.v2.1.2.min.js"></script>
+<div class="textBox">
+  <h1>Responsive Line Graph of DFW Metropolitan CPI Values by Item Group</h1>
+  <h4>How To Use and Interpret Graph</h4>
+  <ul>
+    <li>The graph is responsive and individual date lines may be toggled on or off by clicking the legend.</li>
+    <li>Data point values will display when the mouse is hovered over an inflection point.</li>
+  </ul>
+  <ul>  
+    <li>The pink/magenta lines represent item-groups whose prices have risen faster than average in the Dallas Fort-Worth area.</li>
+    <li>The black lines represent item-groups whose prices have risen slower than average in the Dallas Fort-Worth area.</li>
+  </ul>  
+  <h4>Background On Data</h4>
+  <p>The CPI or Consumer Price Index is an estimate of price changes for either the goods and services in an area in general or for a specific subset of those items. The Bureau of Labor Statistics, the federal office that publishes CPI values, publishes dozens of CPI values for various regions and for different item-groups like food or medical care.</p>
+  <p>Gathering the data to produce a CPI value is expensive and the BLS spends the most money and time on it's estimate for the nation as a whole. However, because prices may rise in Texas and fall in Ohio on any given day the BLS publishes seperate less comprehensive, less costly-to-produce CPI values for various regions and even cities. This result of this is that regional CPI's can not be compared directly to the national figures as they are constructed differently.</p>
+  <p>Nonetheless, the prices of thousands of different products and services are still surveyed to produce Dallas-Fort Worth's consumer price index and these items are broken down into <a href="http://www.bls.gov/cpi/cpiwl001.htm#Exhibit%201" target="_blank">major item-groups</a>. Finally, in the item-group 'Other Goods and Services' the BLS includes things like legal and financial Services as well as personal care products. More info <a href="http://www.bls.gov/cpi/cpiri_2014.pdf" target="_blank">here</a> and <a href="http://www.bls.gov/opub/hom/pdf/homch17.pdf" target="_blank">here</a>.</p>
+</div>
+
+<div id="tree">
+  <script>
+
+var treeData = [
+  {
+    "name": "DFW Item-Groups",
+    "parent": "null",
+"children": [
+ {"name": "Food and Beverage"},
+ {"name": "Medical"},
+ {"name": "Apparel"},
+ {"name": "Transportation"},
+ {"name": "Housing"},
+ {"name": "All Other Goods and Services"}
+ ]
+  }
+];
+
+// ************** Generate the tree diagram  *****************
+var margin = {top: 20, right: 20, bottom: 20, left: 120},
+  width = 800 - margin.right - margin.left,
+  height = 200 - margin.top - margin.bottom;
+  
+var i = 0;
+
+var tree = d3.layout.tree()
+  .size([height, width]);
+
+var diagonal = d3.svg.diagonal()
+  .projection(function(d) { return [d.y, d.x]; });
+
+var svg = d3.select("div#tree").append("svg")
+  .attr("width", width + margin.right + margin.left)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+root = treeData[0];
+  
+update(root);
+
+function update(source) {
+
+  // Compute the new tree layout.
+  var nodes = tree.nodes(root).reverse(),
+    links = tree.links(nodes);
+
+  // Normalize for fixed-depth.
+  nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+  // Declare the nodes…
+  var node = svg.selectAll("g.node")
+    .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+  // Enter the nodes.
+  var nodeEnter = node.enter().append("g")
+    .attr("class", "node")
+    .attr("transform", function(d) { 
+      return "translate(" + d.y + "," + d.x + ")"; });
+
+  nodeEnter.append("circle")
+    .attr("r", 6)
+    .style("fill", "#fff");
+
+  nodeEnter.append("text")
+    .attr("x", function(d) { 
+      return d.children || d._children ? -13 : 13; })
+    .attr("dy", ".35em")
+    .attr("text-anchor", function(d) { 
+      return d.children || d._children ? "end" : "start"; })
+    .text(function(d) { return d.name; })
+    .style("fill-opacity", 1);
+
+  // Declare the links…
+  var link = svg.selectAll("path.link")
+    .data(links, function(d) { return d.target.id; });
+
+  // Enter the links.
+  link.enter().insert("path", "g")
+    .attr("class", "link")
+    .attr("d", diagonal);
+
+}
+
+  </script>
+</div>
+
+<div class="textBox">   
+  <h2> Dallas-Fort Worth Consumer Price Index Values by Item-Group</h2>
+</div>
+
+<div id="graph"> 
+  <script> 
+
+  var width = 960
+  var height = 800
+
+  var svg = d3.select("div#graph")
+			.append("svg")
+			.attr("width", width)
+			.attr("height", height);
+
+  d3.csv("tidy1982-2015_final.csv", function(data) {
+
+	var myChart = new dimple.chart(svg, data);
+  //dimple.chart.setBounds(x, y, width, height)
+	myChart.setBounds("4%","2%","62%","85%");
+	var xAxis = myChart.addTimeAxis("x", "date", "%B-%Y", "%b %y");
+	xAxis.title = "";
+ 	var yAxis = myChart.addMeasureAxis("y", "cpi-value");
+ 	yAxis.overrideMin = 100
+ 	yAxis.title = "CPI Index Value"
+  	myChart.addSeries("descrip", dimple.plot.line).addEventHandler("click", 
+        function (b) {
+  		    alert(" " + b.xValue + "\n " + "CPI Value: " + b.yValue + 
+                "\n Use legend to toggle series on or off")
+  	});
+    myChart.assignColor("All Items", "#4dac26", "#4dac26", 1);
+
+    myChart.assignColor("Medical", "#d01c8b", "#d01c8b", .8);
+    myChart.assignColor("Other Goods & Serv.", "#de77ae", "#de77ae", .8);
+    
+    myChart.assignColor("Food & Bev.", "#f1b6da", "#f1b6da", .7);
+    myChart.assignColor("Transportation", "#d9d9d9", "#d9d9d9", .7);
+    myChart.assignColor("Housing", "#bdbdbd", "#bdbdbd", .9);
+    
+    //myChart.assignColor("Education & Com.", "#969696", "#969696", .7);
+    myChart.assignColor("Apparel", "#737373", "#737373", .6);
+    //myChart.assignColor("Recreation", "#525252  ", "#525252 ", .8);
+
+    
+    //dimple.chart.addLegend(x, y, width, height, horizontalAlign, series)
+  	var myLegend = myChart.addLegend(60, height - (height/25), 800, 20, "left");
+    myLegend.fontSize = "12px";
+  	myChart.draw();
+
+  	myChart.legends = [];
+
+        //Interactive legend modified from
+        // example here http://dimplejs.org/advanced_examples_viewer.html?id=advanced_interactive_legends
+
+        //Get a list of the unique values for descriptive names of Major Item Groups
+        var filterValues = dimple.getUniqueValues(data, "descrip");
+        // Get all the rectangles from our now orphaned legend
+        myLegend.shapes.selectAll("rect")
+          // Add a click event to each rectangle
+          .on("click", function (e) {
+            // This indicates whether the item is already visible or not
+            var hide = false;
+            var newFilters = [];
+            // If the filters contain the clicked shape hide it
+            filterValues.forEach(function (f) {
+              if (f === e.aggField.slice(-1)[0]) {
+                hide = true;
+              } else {
+                newFilters.push(f);
+              }
+            });
+            // Hide the shape or show it
+            if (hide) {
+              d3.select(this).style("opacity", 0.2);
+            } else {
+              newFilters.push(e.aggField.slice(-1)[0]);
+              d3.select(this).style("opacity", 0.8);
+            }
+            // Update the filters
+            filterValues = newFilters;
+            // Filter the data
+            //dimple.filterData(data, field, filterValues)
+            myChart.data = dimple.filterData(data, "descrip", filterValues);
+            // Passing a duration parameter makes the chart animate. Without
+            // it there is no transition
+            myChart.draw(800);
+          });     
+  });	
+  </script>
+ </div>  
+</body>
+</html>
